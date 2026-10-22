@@ -1,5 +1,8 @@
 """AprilTag detection and pose for Picamera."""
+import csv
 import time
+from datetime import datetime, timezone
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -38,13 +41,29 @@ if estimate_pose:
     )
     print("Using provisional calibration: pose values are not validated.")
 last_print_time = 0.0
+frame_index = 0
+csv_file = None
 
 try:
     camera.start()
     time.sleep(2)
+    if estimate_pose:
+        csv_path = Path(__file__).resolve().parent / (
+            f"apriltag_poses_{datetime.now(timezone.utc):%Y%m%dT%H%M%S%fZ}.csv"
+        )
+        csv_file = csv_path.open("w", newline="")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([
+            "timestamp_utc", "frame_index", "tag_id",
+            "tx_m", "ty_m", "tz_m",
+            "r00", "r01", "r02", "r10", "r11", "r12", "r20", "r21", "r22",
+        ])
+        print(f"Saving pose estimates to {csv_path}")
     while True:
         # Capture an image, correct distortion for pose, and convert to grayscale.
         frame = camera.capture_array("main")
+        capture_timestamp = datetime.now(timezone.utc).isoformat(timespec="microseconds")
+        frame_index += 1
         if estimate_pose:
             frame = cv2.remap(frame, map_x, map_y, cv2.INTER_LINEAR)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -56,6 +75,14 @@ try:
             camera_params=camera_parameters,
             tag_size=tag_size,
         )
+
+        # Every tag from this frame gets the same capture timestamp.
+        if estimate_pose:
+            for tag in tags:
+                csv_writer.writerow([
+                    capture_timestamp, frame_index, tag.tag_id,
+                    *tag.pose_t.ravel(), *tag.pose_R.ravel(),
+                ])
 
         # Draw each tag's outline, ID, and optional coordinate axes.
         for tag in tags:
@@ -84,5 +111,7 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
+    if csv_file is not None:
+        csv_file.close()
     camera.close()
     cv2.destroyAllWindows()
