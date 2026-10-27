@@ -33,7 +33,7 @@ camera_parameters = (
 detector = Detector(families=tag_family, nthreads=4, quad_decimate=2.0)
 camera = Picamera2()
 camera.configure(camera.create_still_configuration(
-    main={"size": (320, 240), "format": "RGB888"}
+    main={"size": (960, 720), "format": "RGB888"}
 ))
 if estimate_pose:
     map_x, map_y = cv2.initUndistortRectifyMap(
