@@ -12,7 +12,7 @@ from pupil_apriltags import Detector
 # Settings you can edit.
 tag_family = "tag36h11"
 tag_size = 0.096       # Outer black square side length in meters.
-estimate_pose = True  # Set to False for outlines and IDs only.
+estimate_pose = False  # Set to True for pose estimation.
 
 if estimate_pose and tag_size <= 0:
     raise ValueError("Tag size must be positive.")
@@ -33,7 +33,7 @@ camera_parameters = (
 detector = Detector(families=tag_family, nthreads=4, quad_decimate=2.0)
 camera = Picamera2()
 camera.configure(camera.create_still_configuration(
-    main={"size": (1920, 1440), "format": "RGB888"}
+    main={"size": (320, 240), "format": "RGB888"}
 ))
 if estimate_pose:
     map_x, map_y = cv2.initUndistortRectifyMap(
