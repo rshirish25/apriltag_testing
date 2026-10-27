@@ -33,7 +33,7 @@ camera_parameters = (
 detector = Detector(families=tag_family, nthreads=4, quad_decimate=2.0)
 camera = Picamera2()
 camera.configure(camera.create_still_configuration(
-    main={"size": (960, 720), "format": "RGB888"}
+    main={"size": (320, 240), "format": "RGB888"}
 ))
 if estimate_pose:
     map_x, map_y = cv2.initUndistortRectifyMap(
@@ -105,7 +105,7 @@ try:
             last_print_time = time.monotonic()
 
         # Display the preview. Press q while this window is selected to stop.
-        cv2.imshow("AprilTag", cv2.resize(frame, (960, 720)))
+        cv2.imshow("AprilTag", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 except KeyboardInterrupt:
